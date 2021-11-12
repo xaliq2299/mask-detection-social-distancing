@@ -7,7 +7,7 @@ The goal of this project is to detect if people are wearing masks (in images and
 videos) and then compute the distance between them over time. For this, the team will need to
 use face detection and tracking techniques, and explore the social distancing effect.
 
-● Dataset with masks: Kaggle link 1 , Kaggle link 2
+Dataset with masks: Kaggle link 1 , Kaggle link 2
 
 - Task 1: Mask recognition: classify people wearing masks
     - Train a Mask classification network (binary classification, wearing or not masks)
