@@ -1,1 +1,1 @@
-# mask-detection-social-distancing
+# INF634 - COMPUTER VISION PROJECT
