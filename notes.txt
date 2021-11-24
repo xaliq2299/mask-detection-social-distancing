@@ -4,3 +4,5 @@
 - why human tracking and not just face tracinkg (need to clarify or simplification)
 
 - need to link task 1 and 2 for videos
+
+- test
