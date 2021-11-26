@@ -69,3 +69,7 @@ ___
 
 - Extras:
     - For social distancing, you can use anything from heuristics (e.g., use prior on the human height and estimate the distance given this prior), depth estimators (example),
+
+___
+
+### **References**
