@@ -14,6 +14,12 @@ print("device: {}".format(device))
 # LOAD THE MODELS
 #################################################################################
 
+FaceDetection_model = cv2.CascadeClassifier("./models/haarcascade_frontalface_default.xml")
+
+def detectFaces(img):
+    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    return FaceDetection_model.detectMultiScale(gray_img, 1.1, 4)
+
 MaskRecognition_model = models.resnet50(pretrained=True)
 for param in MaskRecognition_model.parameters():
     param.requires_grad = False
@@ -23,13 +29,13 @@ MaskRecognition_model.fc = nn.Sequential(
     nn.Linear(128,1),
     nn.Sigmoid())
 MaskRecognition_model.to(device)
-MaskRecognition_model = torch.load("./model/MaskRecognitionRSN50.pt")
+MaskRecognition_model.load_state_dict(torch.load("./models/MaskRecognitionRSN50.pt"))
 MaskRecognition_model.eval()
 
-def hasMask(face_img, model):
+def hasMask(face_img):
     face_img_tensor = transforms.Resize((64,64))(torch.Tensor(face_img).permute(2,0,1))
     face_img_tensor = face_img_tensor.reshape((1,3,64,64)).to(device)
-    return torch.round(model(face_img_tensor)).item() == 1
+    return torch.round(MaskRecognition_model(face_img_tensor)).item() == 1
 
 
 #################################################################################
@@ -46,9 +52,16 @@ cv2.imshow("Live Tracker", frame)
 
 while cv2.getWindowProperty("Live Tracker", 0) >= 0:
 
-    _, original_frame = cap.read()
+    _, frame = cap.read()
 
-    frame = original_frame
+    face_boxes = detectFaces(frame)
+
+    for (x,y,w,h) in face_boxes:
+        if hasMask(frame[y:y+h,x:x+h]):
+            cv2.rectangle(frame, (x,y), (x+w,y+h), (0,255,0), 1)
+        else:
+            cv2.rectangle(frame, (x,y), (x+w,y+h), (255,0,0), 1)
+
     cv2.imshow("Live Tracker", frame)
     
     c = cv2.waitKey(1)

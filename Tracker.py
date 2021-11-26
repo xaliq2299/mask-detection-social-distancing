@@ -25,7 +25,7 @@ MaskRecognition_model.fc = nn.Sequential(
     nn.Linear(128,1),
     nn.Sigmoid())
 MaskRecognition_model.to(device)
-MaskRecognition_model = torch.load("./model/MaskRecognitionRSN50.pt")
+MaskRecognition_model = torch.load("./models/MaskRecognitionRSN50.pt")
 MaskRecognition_model.eval()
 
 def hasMask(face_img, model):
