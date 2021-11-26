@@ -9,6 +9,8 @@ import torch.nn as nn
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print("device: {}".format(device))
 
+path_to_video = "./videos/Macron_tracking.mp4"
+
 
 #################################################################################
 # LOAD THE MODELS
@@ -31,29 +33,6 @@ def hasMask(face_img, model):
     face_img_tensor = face_img_tensor.reshape((1,3,64,64)).to(device)
     return torch.round(model(face_img_tensor)).item() == 1
 
-
 #################################################################################
-# LIVE TRACKING
+# LAUNCH THE TRACKING
 #################################################################################
-
-cap = cv2.VideoCapture(0)
-
-if not cap.isOpened():
-    raise IOError("Cannot open webcam")
-
-_, frame = cap.read()
-cv2.imshow("Live Tracker", frame)
-
-while cv2.getWindowProperty("Live Tracker", 0) >= 0:
-
-    _, original_frame = cap.read()
-
-    frame = original_frame
-    cv2.imshow("Live Tracker", frame)
-    
-    c = cv2.waitKey(1)
-    if c == 27:
-        break
-
-cap.release()
-cv2.destroyAllWindows()
