@@ -67,17 +67,10 @@ while cv2.getWindowProperty("Tracker", 0) >= 0:
 
     _, frame = cap.read()
 
-    face_boxes = detectFaces(frame)
-
-    for (x,y,w,h) in face_boxes:
-        if hasMask(frame[y:y+h,x:x+h]):
-            cv2.rectangle(frame, (x,y), (x+w,y+h), (0,255,0), 1)
-        else:
-            cv2.rectangle(frame, (x,y), (x+w,y+h), (0,0,255), 1)
 
     cv2.imshow("Tracker", frame)
     
-    c = cv2.waitKey(1)
+    c = cv2.waitKey(100)
     if c == 27:
         break
 
