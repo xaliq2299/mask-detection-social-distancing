@@ -1,9 +1,11 @@
 import cv2
 
 from torchvision import models, transforms
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 import torch
 import torch.nn as nn
+import torchvision
 
 
 
@@ -18,9 +20,13 @@ video_path = "./data/Videos/macron.mp4"
 
 
 
-#################################################################################
+#######################################################################################
 # LOAD THE MODELS
-#################################################################################
+#######################################################################################
+
+###############################
+### HAAR CASCADE + RESNET50 ###
+###############################
 
 FaceDetection_model_frontal = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 # FaceDetection_model_profile = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_profileface.xml")
@@ -50,10 +56,50 @@ def hasMask(face_img):
     return torch.round(MaskRecognition_model(face_img_tensor)).item() == 1
 
 
+##############################
+### FASTER-RCNN (RESNET50) ###
+##############################
 
-#################################################################################
+def get_rcnn_model(nb_classes):
+    # load a model pre-trained on COCO
+    model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+    # get number of input features for the classifier
+    in_features = model.roi_heads.box_predictor.cls_score.in_features
+    # replace the pre-trained head with a new one
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, nb_classes)
+    return model
+
+modelRCNN = get_rcnn_model(nb_classes=3)
+modelRCNN.to(device)
+modelRCNN.load_state_dict(torch.load("./models/MaskRecognitionFasterRCNN.pt"))
+modelRCNN.eval()
+
+def getboxesRCNN(frame):
+
+    height, width, _ = frame.shape
+    model_input = transforms.Resize((128,128))(torch.Tensor(frame).permute(2,0,1))
+    model_input = model_input.reshape((1,3,128,128)).to(device)
+    target = modelRCNN(model_input)
+
+    size = len(target["boxes"])
+    boxes = []
+    
+    for i in range(size):
+        box = target["boxes"][i]
+        label = int(target["labels"][i])
+        xmin = int(width*box[0]/128)
+        xmax = int(width*box[2]/128)
+        ymin = int(height*box[1]/128)
+        ymax = int(height*box[3]/128)
+        boxes.append(xmin,ymin,xmax,ymax,label)
+    
+    return boxes
+
+#######################################################################################
 # LIVE TRACKING
-#################################################################################
+#######################################################################################
+
+
 
 cap = cv2.VideoCapture(video_path)
 
@@ -66,9 +112,21 @@ cv2.imshow("Tracker", frame)
 while cv2.getWindowProperty("Tracker", 0) >= 0:
 
     _, frame = cap.read()
+    overlay = frame.copy()
+    output = frame.copy()
 
+    boxes = getboxesRCNN(frame)
 
-    cv2.imshow("Tracker", frame)
+    for (xmin,ymin,xmax,ymax,label) in boxes:
+        if label == 0:
+            cv2.rectangle(overlay, (xmin,ymin), (xmax,ymax), (0,0,255), 2)
+        elif label == 1:
+            cv2.rectangle(overlay, (xmin,ymin), (xmax,ymax), (0,127,127), 2)
+        else:
+            cv2.rectangle(overlay, (xmin,ymin), (xmax,ymax), (0,255,0), 2)
+    
+    output = cv2.addWeighted(overlay, 0.05, output, 0.90, 0, output)
+    cv2.imshow("Tracker", output)
     
     c = cv2.waitKey(100)
     if c == 27:
