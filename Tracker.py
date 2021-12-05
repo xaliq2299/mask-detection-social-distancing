@@ -15,8 +15,8 @@ print("device: {}".format(device))
 
 # if string: path to video
 # if 0 (int): use webcam
-# video_path = "./data/Videos/macron.mp4"
-video_path = 0
+video_path = "./data/Videos/macron.mp4"
+# video_path = 0
 
 
 
