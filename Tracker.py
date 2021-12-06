@@ -15,8 +15,8 @@ print("device: {}".format(device))
 
 # if string: path to video
 # if 0 (int): use webcam
-#video_path = "./data/Videos_Raw/macron.mp4"
-video_path = 0
+video_path = "./data/Videos_Raw/macron.mp4"
+# video_path = 0
 
 
 
@@ -69,7 +69,7 @@ def get_rcnn_model(nb_classes):
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, nb_classes)
     return model
 
-modelRCNN = get_rcnn_model(nb_classes=3)
+modelRCNN = get_rcnn_model(nb_classes=4)
 modelRCNN.to(device)
 modelRCNN.load_state_dict(torch.load("./models/MaskRecognitionFasterRCNN.pt"))
 modelRCNN.eval()
@@ -116,11 +116,11 @@ while cv2.getWindowProperty("Tracker", 0) >= 0:
     boxes = getboxesRCNN(frame)
 
     for (xmin,ymin,xmax,ymax,label) in boxes:
-        if label == 0:
+        if label == 1:
             cv2.rectangle(overlay, (xmin,ymin), (xmax,ymax), (0,0,255), 2)
-        elif label == 1:
-            cv2.rectangle(overlay, (xmin,ymin), (xmax,ymax), (0,127,127), 2)
         elif label == 2:
+            cv2.rectangle(overlay, (xmin,ymin), (xmax,ymax), (0,127,127), 2)
+        else:
             cv2.rectangle(overlay, (xmin,ymin), (xmax,ymax), (0,255,0), 2)
     
     output = cv2.addWeighted(overlay, 0.5, output, 0.5, 0, output)
