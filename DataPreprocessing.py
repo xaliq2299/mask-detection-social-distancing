@@ -1,8 +1,6 @@
-from tqdm import tqdm
 from xml.dom import minidom
 
 import cv2
-import numpy as np
 import os
 import pandas as pd
 
@@ -29,14 +27,15 @@ annotations_raw_files = os.listdir(annotations_raw_path)
 assert ([annotation_raw_file[15:-4] for annotation_raw_file in annotations_raw_files] == [image_raw_file[15:-4] for image_raw_file in images_raw_files])
 
 
-name_to_label =  {"without_mask": 0, "mask_weared_incorrect": 1, "with_mask": 2}
+# the label 0 is the background class
+name_to_label =  {"without_mask": 1, "mask_weared_incorrect": 2, "with_mask": 3}
 
 nb_images = 0
 
 data = []
 
 
-for i in tqdm(range(len(images_raw_files))):
+for i in range(len(images_raw_files)):
 
     targets = []
     count = 0
@@ -61,7 +60,7 @@ for i in tqdm(range(len(images_raw_files))):
         ymin = int(object.getElementsByTagName("ymin")[0].firstChild.data)
         ymax = int(object.getElementsByTagName("ymax")[0].firstChild.data)
 
-        if box_label < 2:
+        if box_label < 3:
             targets.append((xmin,xmax,ymin,ymax,box_label))
         else:
             count += 1
@@ -101,22 +100,47 @@ for i in tqdm(range(len(images_raw_files))):
             img_bis = img[max(ymin-h,0):min(image_height-1,ymax+h),max(xmin-w,0):min(image_width-1,xmax+w)]
             img_bis_flip = img_flip[max(ymin-h,0):min(image_height-1,ymax+h),max(xmin_flip-w_flip,0):min(image_width-1,xmax_flip+w_flip)]
 
-            cv2.imwrite(images_pro_path + str(nb_images) + ".png", img_bis)
-            cv2.imwrite(images_pro_path + str(nb_images+1) + ".png", img_bis_flip)
+            if box_label == 1:
 
-            h0,w0,_ = img_bis.shape
-            h0_flip,w0_flip,_ = img_bis_flip.shape
-            xmin = w0//3
-            xmax = 2*w0//3
-            xmin_flip = w0_flip//3
-            xmax_flip = 2*w0_flip//3
-            ymin = h0//3
-            ymax = 2*h0//3
+                for i in range(2):
 
-            data.append((nb_images, h0, w0, 0, box_label, xmin, xmax, ymin, ymax))
-            data.append((nb_images+1, h0_flip, w0_flip, 0, box_label, xmin_flip, xmax_flip, ymin, ymax))
+                    cv2.imwrite(images_pro_path + str(nb_images) + ".png", img_bis)
+                    cv2.imwrite(images_pro_path + str(nb_images+1) + ".png", img_bis_flip)
 
-            nb_images += 2
+                    h0,w0,_ = img_bis.shape
+                    h0_flip,w0_flip,_ = img_bis_flip.shape
+                    xmin = w0//3
+                    xmax = 2*w0//3
+                    xmin_flip = w0_flip//3
+                    xmax_flip = 2*w0_flip//3
+                    ymin = h0//3
+                    ymax = 2*h0//3
+
+                    data.append((nb_images, h0, w0, 0, box_label, xmin, xmax, ymin, ymax))
+                    data.append((nb_images+1, h0_flip, w0_flip, 0, box_label, xmin_flip, xmax_flip, ymin, ymax))
+
+                    nb_images += 2
+            
+            else:
+
+                for i in range(5):
+
+                    cv2.imwrite(images_pro_path + str(nb_images) + ".png", img_bis)
+                    cv2.imwrite(images_pro_path + str(nb_images+1) + ".png", img_bis_flip)
+
+                    h0,w0,_ = img_bis.shape
+                    h0_flip,w0_flip,_ = img_bis_flip.shape
+                    xmin = w0//3
+                    xmax = 2*w0//3
+                    xmin_flip = w0_flip//3
+                    xmax_flip = 2*w0_flip//3
+                    ymin = h0//3
+                    ymax = 2*h0//3
+
+                    data.append((nb_images, h0, w0, 0, box_label, xmin, xmax, ymin, ymax))
+                    data.append((nb_images+1, h0_flip, w0_flip, 0, box_label, xmin_flip, xmax_flip, ymin, ymax))
+
+                    nb_images += 2
 
 
 columns = ["image_id", "image_height", "image_width", "box_id", "box_label", "xmin", "xmax", "ymin", "ymax"]
