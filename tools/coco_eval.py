@@ -1,42 +1,43 @@
-from contextlib import redirect_stdout
-
 import copy
 import io
+from contextlib import redirect_stdout
+
 import numpy as np
-
+import pycocotools.mask as mask_util
 import torch
-
-from .utils import *
-
+from .utils import all_gather
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
-import pycocotools.mask as mask_util
-
-
 
 class CocoEvaluator:
-
     def __init__(self, coco_gt, iou_types):
         assert isinstance(iou_types, (list, tuple))
         coco_gt = copy.deepcopy(coco_gt)
         self.coco_gt = coco_gt
+
         self.iou_types = iou_types
-        self.coco_eval = {iou_type: COCOeval(coco_gt, iouType=iou_type) for iou_type in iou_types}
+        self.coco_eval = {}
+        for iou_type in iou_types:
+            self.coco_eval[iou_type] = COCOeval(coco_gt, iouType=iou_type)
+
         self.img_ids = []
         self.eval_imgs = {k: [] for k in iou_types}
 
     def update(self, predictions):
         img_ids = list(np.unique(list(predictions.keys())))
         self.img_ids.extend(img_ids)
+
         for iou_type in self.iou_types:
             results = self.prepare(predictions, iou_type)
             with redirect_stdout(io.StringIO()):
                 coco_dt = COCO.loadRes(self.coco_gt, results) if results else COCO()
             coco_eval = self.coco_eval[iou_type]
+
             coco_eval.cocoDt = coco_dt
             coco_eval.params.imgIds = list(img_ids)
             img_ids, eval_imgs = evaluate(coco_eval)
+
             self.eval_imgs[iou_type].append(eval_imgs)
 
     def synchronize_between_processes(self):
@@ -67,18 +68,23 @@ class CocoEvaluator:
         for original_id, prediction in predictions.items():
             if len(prediction) == 0:
                 continue
-            boxes = convert_to_xywh(prediction["boxes"]).tolist()
+
+            boxes = prediction["boxes"]
+            boxes = convert_to_xywh(boxes).tolist()
             scores = prediction["scores"].tolist()
             labels = prediction["labels"].tolist()
-            coco_results.extend([
-                {
-                    "image_id": original_id,
-                    "category_id": labels[k],
-                    "bbox": box,
-                    "score": scores[k],
-                }
-                for k, box in enumerate(boxes)
-            ])
+
+            coco_results.extend(
+                [
+                    {
+                        "image_id": original_id,
+                        "category_id": labels[k],
+                        "bbox": box,
+                        "score": scores[k],
+                    }
+                    for k, box in enumerate(boxes)
+                ]
+            )
         return coco_results
 
     def prepare_for_coco_segmentation(self, predictions):
@@ -86,23 +92,33 @@ class CocoEvaluator:
         for original_id, prediction in predictions.items():
             if len(prediction) == 0:
                 continue
+
             scores = prediction["scores"]
             labels = prediction["labels"]
-            masks = prediction["masks"]  > 0.5
+            masks = prediction["masks"]
+
+            masks = masks > 0.5
+
             scores = prediction["scores"].tolist()
             labels = prediction["labels"].tolist()
-            rles = [mask_util.encode(np.array(mask[0, :, :, np.newaxis], dtype=np.uint8, order="F"))[0] for mask in masks]
+
+            rles = [
+                mask_util.encode(np.array(mask[0, :, :, np.newaxis], dtype=np.uint8, order="F"))[0] for mask in masks
+            ]
             for rle in rles:
                 rle["counts"] = rle["counts"].decode("utf-8")
-            coco_results.extend([
-                {
-                    "image_id": original_id,
-                    "category_id": labels[k],
-                    "segmentation": rle,
-                    "score": scores[k],
-                }
-                for k, rle in enumerate(rles)
-            ])
+
+            coco_results.extend(
+                [
+                    {
+                        "image_id": original_id,
+                        "category_id": labels[k],
+                        "segmentation": rle,
+                        "score": scores[k],
+                    }
+                    for k, rle in enumerate(rles)
+                ]
+            )
         return coco_results
 
     def prepare_for_coco_keypoint(self, predictions):
@@ -110,19 +126,25 @@ class CocoEvaluator:
         for original_id, prediction in predictions.items():
             if len(prediction) == 0:
                 continue
-            boxes = convert_to_xywh(prediction["boxes"]).tolist()
+
+            boxes = prediction["boxes"]
+            boxes = convert_to_xywh(boxes).tolist()
             scores = prediction["scores"].tolist()
             labels = prediction["labels"].tolist()
-            keypoints = prediction["keypoints"].flatten(start_dim=1).tolist()
-            coco_results.extend([
-                {
-                    "image_id": original_id,
-                    "category_id": labels[k],
-                    "keypoints": keypoint,
-                    "score": scores[k],
-                }
-                for k, keypoint in enumerate(keypoints)
-            ])
+            keypoints = prediction["keypoints"]
+            keypoints = keypoints.flatten(start_dim=1).tolist()
+
+            coco_results.extend(
+                [
+                    {
+                        "image_id": original_id,
+                        "category_id": labels[k],
+                        "keypoints": keypoint,
+                        "score": scores[k],
+                    }
+                    for k, keypoint in enumerate(keypoints)
+                ]
+            )
         return coco_results
 
 
@@ -132,7 +154,6 @@ def convert_to_xywh(boxes):
 
 
 def merge(img_ids, eval_imgs):
-    
     all_img_ids = all_gather(img_ids)
     all_eval_imgs = all_gather(eval_imgs)
 
@@ -155,7 +176,6 @@ def merge(img_ids, eval_imgs):
 
 
 def create_common_coco_eval(coco_eval, img_ids, eval_imgs):
-
     img_ids, eval_imgs = merge(img_ids, eval_imgs)
     img_ids = list(img_ids)
     eval_imgs = list(eval_imgs.flatten())

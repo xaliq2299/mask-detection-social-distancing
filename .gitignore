@@ -1,3 +1,4 @@
-data/FaceMaskDetection/
+data/FaceMaskDetection_Processed/
+data/FaceMaskDetection_Raw/
 __pycache__/
 models/MaskRecognitionFasterRCNN.pt

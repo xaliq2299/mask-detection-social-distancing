@@ -15,8 +15,8 @@ print("device: {}".format(device))
 
 # if string: path to video
 # if 0 (int): use webcam
-video_path = "./data/Videos/macron.mp4"
-# video_path = 0
+#video_path = "./data/Videos_Raw/macron.mp4"
+video_path = 0
 
 
 
@@ -77,8 +77,8 @@ modelRCNN.eval()
 def getboxesRCNN(frame):
 
     height, width, nb_channel = frame.shape
-    model_input = transforms.Resize((128,128))(torch.Tensor(frame).permute(2,0,1))
-    model_input = model_input.reshape((1,3,128,128)).to(device)
+    model_input = transforms.Resize((256,256))(torch.Tensor(frame).permute(2,0,1))
+    model_input = model_input.reshape((1,3,256,256)).to(device)
     target = modelRCNN(model_input)[0]
 
     size = len(target["boxes"])
@@ -87,10 +87,10 @@ def getboxesRCNN(frame):
     for i in range(size):
         box = target["boxes"][i]
         label = int(target["labels"][i])
-        xmin = int(width*box[0]/128)
-        ymin = int(height*box[1]/128)
-        xmax = int(width*box[2]/128)
-        ymax = int(height*box[3]/128)
+        xmin = int(width*box[0]/256)
+        ymin = int(height*box[1]/256)
+        xmax = int(width*box[2]/256)
+        ymax = int(height*box[3]/256)
         boxes.append((xmin,ymin,xmax,ymax,label))
     
     return boxes
@@ -120,7 +120,7 @@ while cv2.getWindowProperty("Tracker", 0) >= 0:
             cv2.rectangle(overlay, (xmin,ymin), (xmax,ymax), (0,0,255), 2)
         elif label == 1:
             cv2.rectangle(overlay, (xmin,ymin), (xmax,ymax), (0,127,127), 2)
-        else:
+        elif label == 2:
             cv2.rectangle(overlay, (xmin,ymin), (xmax,ymax), (0,255,0), 2)
     
     output = cv2.addWeighted(overlay, 0.5, output, 0.5, 0, output)

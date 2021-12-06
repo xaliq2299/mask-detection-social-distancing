@@ -4,22 +4,19 @@ import os
 import torch
 import torch.utils.data
 import torchvision
-
-from .transforms import *
-
+from .transforms import Compose
 from pycocotools import mask as coco_mask
 from pycocotools.coco import COCO
 
 
-
 class FilterAndRemapCocoCategories:
-
     def __init__(self, categories, remap=True):
         self.categories = categories
         self.remap = remap
 
     def __call__(self, image, target):
-        anno = [obj for obj in target["annotations"] if obj["category_id"] in self.categories]
+        anno = target["annotations"]
+        anno = [obj for obj in anno if obj["category_id"] in self.categories]
         if not self.remap:
             target["annotations"] = anno
             return image, target
@@ -37,7 +34,8 @@ def convert_coco_poly_to_mask(segmentations, height, width):
         mask = coco_mask.decode(rles)
         if len(mask.shape) < 3:
             mask = mask[..., None]
-        mask = torch.as_tensor(mask, dtype=torch.uint8).any(dim=2)
+        mask = torch.as_tensor(mask, dtype=torch.uint8)
+        mask = mask.any(dim=2)
         masks.append(mask)
     if masks:
         masks = torch.stack(masks, dim=0)
@@ -220,7 +218,7 @@ class CocoDetection(torchvision.datasets.CocoDetection):
 
 
 def get_coco(root, image_set, transforms, mode="instances"):
-    
+
     anno_file_template = "{}_{}2017.json"
     PATHS = {
         "train": ("train2017", os.path.join("annotations", anno_file_template.format(mode, "train"))),
