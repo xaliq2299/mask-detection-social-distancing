@@ -41,7 +41,7 @@ modelRSN18.fc = nn.Sequential(
     nn.Linear(64,3),
     nn.Softmax())
 modelRSN18.to(device)
-modelRSN18.load_state_dict(torch.load("./models/MaskRecognitionRSN18.pt"))
+modelRSN18.load_state_dict(torch.load("./models/MaskRecognitionRSN18.pt", map_location=torch.device('cpu')))
 modelRSN18.eval()
 
 def get_boxes_RSN18(img):
@@ -64,7 +64,7 @@ modelRCNN = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True
 in_features = modelRCNN.roi_heads.box_predictor.cls_score.in_features
 modelRCNN.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes=4)
 modelRCNN.to(device)
-modelRCNN.load_state_dict(torch.load("./models/MaskRecognitionFasterRCNN.pt"))
+modelRCNN.load_state_dict(torch.load("./models/MaskRecognitionFasterRCNN.pt", map_location=torch.device('cpu')))
 modelRCNN.eval()
 
 def get_boxes_RCNN(frame):
