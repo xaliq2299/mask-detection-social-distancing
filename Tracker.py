@@ -15,8 +15,8 @@ print("device: {}".format(device))
 
 # if string: path to video
 # if 0 (int): use webcam
-video_path = "./data/Videos_Raw/macron.mp4"
-# video_path = 0
+# video_path = "./data/Videos_Raw/macron.mp4"
+video_path = 0
 
 
 
@@ -25,66 +25,57 @@ video_path = "./data/Videos_Raw/macron.mp4"
 #######################################################################################
 
 ###############################
-### HAAR CASCADE + RESNET50 ###
+### HAAR CASCADE + RESNET18 ###
 ###############################
 
-FaceDetection_model_frontal = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-# FaceDetection_model_profile = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_profileface.xml")
+FaceDetection_model = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
-def detectFaces(img):
-    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    return FaceDetection_model_frontal.detectMultiScale(gray_img, 1.1, 4)
-    # return FaceDetection_model_profile.detectMultiScale(gray_img, 1.1, 4)
-
-MaskRecognition_model = models.resnet50(pretrained=True)
-for param in MaskRecognition_model.parameters():
+modelRSN18 = models.resnet18(pretrained=True)
+for param in modelRSN18.parameters():
     param.requires_grad = False
-MaskRecognition_model.fc = nn.Sequential(
-    nn.Linear(2048,1024),
+modelRSN18.fc = nn.Sequential(
+    nn.Linear(512,256),
     nn.ReLU(),
-    nn.Linear(1024,256),
+    nn.Linear(256,64),
     nn.ReLU(),
-    nn.Linear(256,1),
-    nn.Sigmoid())
-MaskRecognition_model.to(device)
-MaskRecognition_model.load_state_dict(torch.load("./models/MaskRecognitionRSN50.pt"))
-MaskRecognition_model.eval()
+    nn.Linear(64,3),
+    nn.Softmax())
+modelRSN18.to(device)
+modelRSN18.load_state_dict(torch.load("./models/MaskRecognitionRSN18.pt"))
+modelRSN18.eval()
 
-def hasMask(face_img):
-    face_img_tensor = transforms.Resize((64,64))(torch.Tensor(face_img).permute(2,0,1))
-    face_img_tensor = face_img_tensor.reshape((1,3,64,64)).to(device)
-    return torch.round(MaskRecognition_model(face_img_tensor)).item() == 1
+def get_boxes_RSN18(img):
+    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    boxes = FaceDetection_model.detectMultiScale(gray_img, 1.1, 4)
+    results = []
+    for (x,y,w,h) in boxes:
+        model_input = transforms.Resize((256,256))(torch.Tensor(img[y:y+h,x:x+w]).permute(2,0,1))
+        model_input = model_input.reshape((1,3,256,256)).to(device)
+        label = torch.argmax(modelRSN18(model_input)).item()
+        results.append((x,y,x+w,y+h,label))
+    return results
 
 
 ##############################
 ### FASTER-RCNN (RESNET50) ###
 ##############################
 
-def get_rcnn_model(nb_classes):
-    # load a model pre-trained on COCO
-    model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
-    # get number of input features for the classifier
-    in_features = model.roi_heads.box_predictor.cls_score.in_features
-    # replace the pre-trained head with a new one
-    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, nb_classes)
-    return model
-
-modelRCNN = get_rcnn_model(nb_classes=4)
+modelRCNN = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+in_features = modelRCNN.roi_heads.box_predictor.cls_score.in_features
+modelRCNN.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes=4)
 modelRCNN.to(device)
 modelRCNN.load_state_dict(torch.load("./models/MaskRecognitionFasterRCNN.pt"))
 modelRCNN.eval()
 
-def getboxesRCNN(frame):
+def get_boxes_RCNN(frame):
 
     height, width, nb_channel = frame.shape
     model_input = transforms.Resize((256,256))(torch.Tensor(frame).permute(2,0,1))
     model_input = model_input.reshape((1,3,256,256)).to(device)
     target = modelRCNN(model_input)[0]
-
-    size = len(target["boxes"])
     boxes = []
     
-    for i in range(size):
+    for i in range(len(target["boxes"])):
         box = target["boxes"][i]
         label = int(target["labels"][i])
         xmin = int(width*box[0]/256)
@@ -113,7 +104,8 @@ cv2.imshow("Tracker", frame)
 
 while cv2.getWindowProperty("Tracker", 0) >= 0:
 
-    boxes = getboxesRCNN(frame)
+    # boxes = get_boxes_RSN18(frame)
+    boxes = get_boxes_RCNN(frame)
 
     for (xmin,ymin,xmax,ymax,label) in boxes:
         if label == 1:
