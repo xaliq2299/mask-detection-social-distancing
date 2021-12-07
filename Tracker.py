@@ -2,6 +2,8 @@ import cv2 as cv
 import numpy as np
 import os, sys, getopt
 
+import shutil # to remove a folder recursively through Python
+
 from torchvision import models, transforms
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 import torch
@@ -254,15 +256,15 @@ def main(argv):
             MIN_DISTANCE = 2.4
             social_distancing = SocialDistancing.SocialDistancing(MIN_DISTANCE)
 
-            directory = 'tmp_disparity_maps/'
+            directory = 'tmp_depth_maps/'
             if not os.path.exists(directory):
                os.makedirs(directory)
             cv.imwrite(directory + 'img.jpg', overlay)
 
             output_name = INPUT_PATH.split('/')[1].split('.')[0] + '_frame_' + str(i) + '.jpeg'
-            os.system('python3 monodepth2/test_simple.py --image_path tmp_disparity_maps/img.jpg --model_name mono+stereo_640x192')
+            os.system('python3 monodepth2/test_simple.py --image_path tmp_depth_maps/img.jpg --model_name mono+stereo_640x192')
 
-            depth = cv.imread('tmp_disparity_maps/img_disp.jpeg')
+            depth = cv.imread('tmp_depth_maps/img_disp.jpeg')
             # w, h = img.shape[0], img.shape[1]
             
             # depth = np.zeros([w, h])
@@ -274,7 +276,7 @@ def main(argv):
                             # [0, 0, 1, 0]])
             # depth = cv.reprojectImageTo3D(disparity, Q) # 3D point cloud
             overlay = social_distancing.depth(overlay, human_boxes, depth)
-            # os.system('rm -r tmp_disparity_maps/') # todo
+            shutil.rmtree('./tmp_depth_maps/')
 
         #################################################################################
         out.write(overlay) # todo: output
