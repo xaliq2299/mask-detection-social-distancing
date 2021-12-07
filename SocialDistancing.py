@@ -55,12 +55,12 @@ class SocialDistancing:
 	    # loop over the upper triangular of the distance matrix
 	    for i in range(0, D.shape[0]):
 	        for j in range(i + 1, D.shape[1]):
-	            x0 = coords[int(centroids[i][1]), int(centroids[i][0]), 0]
-	            y0 = coords[int(centroids[i][1]), int(centroids[i][0]), 1]
-	            z0 = coords[int(centroids[i][1]), int(centroids[i][0]), 2]
-	            x1 = coords[int(centroids[j][1]), int(centroids[j][0]), 0]
-	            y1 = coords[int(centroids[j][1]), int(centroids[j][0]), 1]
-	            z1 = coords[int(centroids[j][1]), int(centroids[j][0]), 2]
+	            x0 = int(coords[int(centroids[i][1]), int(centroids[i][0]), 0])
+	            y0 = int(coords[int(centroids[i][1]), int(centroids[i][0]), 1])
+	            z0 = int(coords[int(centroids[i][1]), int(centroids[i][0]), 2])
+	            x1 = int(coords[int(centroids[j][1]), int(centroids[j][0]), 0])
+	            y1 = int(coords[int(centroids[j][1]), int(centroids[j][0]), 1])
+	            z1 = int(coords[int(centroids[j][1]), int(centroids[j][0]), 2])
 	            D[i, j] = math.sqrt((x0-x1)**2+(y0-y1)**2+(z0-z1)**2)
 	            if D[i, j] < self.min_distance:
 	                # update our violation set with the indexes of the centroid pairs
