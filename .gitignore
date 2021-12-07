@@ -11,3 +11,4 @@ monodepth2/
 multi-object-tracker/
 
 __pycache__/
+.ipynb_checkpoints/

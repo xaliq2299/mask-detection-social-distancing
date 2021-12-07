@@ -58,17 +58,13 @@ def main(argv):
     PRIOR_BASED_APPROACH = 1
     DEPTH_MAP_ESTIMATOR_APPROACH = 2
     distancing_approach = PRIOR_BASED_APPROACH
-    MIN_DISTANCE = 50 # needed for social distancing 2.3 the best so far
+    MIN_DISTANCE = 50 # needed for social distancing
 
     # Yolov3 and SORT
     CONFIDENCE_THRESHOLD = 0.5
     NMS_THRESHOLD = 0.2
     DRAW_BOUNDING_BOXES = True
     USE_GPU = False
- 
-    # colors
-    RED   = (0, 0, 255)
-    BLUE  = (255, 0, 0)
 
 
     #################################################################################
@@ -108,7 +104,6 @@ def main(argv):
         elif opt in ("-o", "--output"):
             OUTPUT_PATH = arg
         elif opt in ("-f", "--frames"):
-            print(arg)
             num_frames = int(arg)
         elif opt in ("-d", "--distancing"):
             distancing_approach = int(arg)
@@ -133,12 +128,21 @@ def main(argv):
         print('[!] Input file path required')
         print("Usage: Tracker.py -i <inputfile> [-o <outputfile> -f <number of frames> -d <social distancing approach (1 for simple approach,\
                                         2 for depth map estimator> -w <Yolov3 weights path> -c <Yolov3 config file path>]")
+
+    # processing output file path
     if OUTPUT_PATH == '':
         directory = 'data/Videos_Processed/'
         if not os.path.exists(directory):
             os.makedirs(directory)
         OUTPUT_PATH = directory + INPUT_PATH.split('/')[-1].split('.')[0] + '_processed.mp4'
-        # print(OUTPUT_PATH)
+
+    # number of frames
+    if num_frames == -1: # if user has entered -1, then all frames will be processed
+        cap = cv.VideoCapture(INPUT_PATH)
+        num_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
+        print("All frames (i.e.,", num_frames, ") to be processed...")
+    else:
+       print(num_frames, " frames to be processed...")
 
 
     #################################################################################
@@ -177,17 +181,12 @@ def main(argv):
     if (cap.isOpened() == False):
         print("Unable to read camera feed")
 
-    # fourcc = cv.VideoWriter_fourcc(*'MP4V') # TIVX/DIVX for avi format
-    # fourcc = cv.VideoWriter_fourcc(*'MPEG')
-    # fourcc = cv.VideoWriter_fourcc(*'XVID')
-    # fourcc = cv.VideoWriter_fourcc('M','J','P','G') # ('M','P,'E','G')
     fourcc = cv.VideoWriter_fourcc('m', 'p', '4', 'v')
     fps = 10
     frame_width = int(cap.get(3))
     frame_height = int(cap.get(4))
     out = cv.VideoWriter(OUTPUT_PATH, fourcc, fps, (frame_width, frame_height))
 
-    # while True:
     for i in range(num_frames):
         print('frame', i+1)
         ok, frame = cap.read()
@@ -199,11 +198,10 @@ def main(argv):
         overlay = frame.copy()
         output = frame.copy() # todo
         frame = cv.resize(frame, (frame_width, frame_height))
-        # print(overlay.shape)
 
 
         #################################################################################
-        # RUNNING MODEL FOR MASK RECOGNITION
+        # MASK RECOGNITION
         #################################################################################
         boxes = get_boxes_RCNN(modelRCNN, frame)
         # print('boxes:', boxes)
@@ -220,55 +218,48 @@ def main(argv):
 
 
         #################################################################################
-        # SORT TRACKING (human detection model)
+        # HUMAN DETECTION + HUMAN TRACKING
         #################################################################################
         human_boxes, confidences, class_ids = HumanDetection_model.detect(frame)
-        # human_boxes, weights = hog.detectMultiScale(frame, winStride=(8,8) )
-        # print('class ids:', class_ids)
-        
         tracks = tracker.update(human_boxes, confidences, class_ids)
         # overlay = HumanDetection_model.draw_bboxes(overlay, human_boxes, confidences, class_ids)
         overlay = draw_tracks(overlay, tracks)
 
 
         #################################################################################
-        # SOCIAL DISTANCING (human detection model + simple heuristics)
+        # SOCIAL DISTANCING
         #################################################################################
-        # directory = 'disparity_maps/'
-        # if not os.path.exists(directory):
-        #    os.makedirs(directory)
-        # cv.imwrite(directory + 'img.jpg', overlay) # maybe smth else
+        if distancing_approach == PRIOR_BASED_APPROACH:
+            social_distancing = SocialDistancing.SocialDistancing(MIN_DISTANCE)
+            overlay = social_distancing.euclidean(overlay, human_boxes)
+        elif distancing_approach == DEPTH_MAP_ESTIMATOR_APPROACH:
+            MIN_DISTANCE = 2.3
+            social_distancing = SocialDistancing.SocialDistancing(MIN_DISTANCE)
 
-        # output_name = INPUT_PATH.split('/')[1].split('.')[0] + '_frame_' + str(i) + '.jpeg'
-        # print(output_name)
-        # disparity.disparity_map_calc(overlay, output_name)
-        # os.system('python3 monodepth2/test_simple.py --image_path disparity_maps/img.jpg --model_name mono+stereo_640x192')
+            directory = 'tmp_disparity_maps/'
+            if not os.path.exists(directory):
+               os.makedirs(directory)
+            cv.imwrite(directory + 'img.jpg', overlay)
 
-        # img = cv.imread('disparity_maps/img_disp.jpeg')
-        # w, h = img.shape[0], img.shape[1]
-        # depth = np.zeros([w, h])
-        # b = img[:,:,0]
-        # g = img[:,:,1]
-        # r = img[:,:,2]
-        # depth = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+            output_name = INPUT_PATH.split('/')[1].split('.')[0] + '_frame_' + str(i) + '.jpeg'
+            os.system('python3 monodepth2/test_simple.py --image_path tmp_disparity_maps/img.jpg --model_name mono+stereo_640x192')
 
-        # f = 0.8*w # guess for focal length
-        # Q = np.float32([[1, 0, 0, -0.5*w],
-        #                 [0, -1, 0, 0.5*h],
-        #                 [0, 0, 0, -f],
-        #                 [0, 0, 1, 0]])
-        # output3D = cv.reprojectImageTo3D(depth, Q)
-        # todo remove folder at the end
-
-        social_distancing = SocialDistancing.SocialDistancing(MIN_DISTANCE)
-        overlay = social_distancing.euclidean(overlay, human_boxes)
-        # overlay = social_distancing.depth(overlay, human_boxes, output3D)
+            img = cv.imread('tmp_disparity_maps/img_disp.jpeg')
+            w, h = img.shape[0], img.shape[1]
+            
+            # depth = np.zeros([w, h])
+            disparity = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+            f = 0.8*w # guess for focal length
+            Q = np.float32([[1, 0, 0, -0.5*w],
+                            [0, -1, 0, 0.5*h],
+                            [0, 0, 0, -f],
+                            [0, 0, 1, 0]])
+            depth = cv.reprojectImageTo3D(disparity, Q) # 3D point cloud
+            overlay = social_distancing.depth(overlay, human_boxes, depth)
+            # os.system('rm -r tmp_disparity_maps/') # todo
 
         #################################################################################
-
-        # cv.imshow('', frame) # cv_imshow in Colab
-        out.write(overlay) # output
-
+        out.write(overlay) # todo: output
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 
