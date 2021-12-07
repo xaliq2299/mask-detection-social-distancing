@@ -56,6 +56,12 @@ The input file is important for the script to function, but the remaining user a
 ```
 python3 TrackerLive.py
 ```
+**Example**<br>
+```
+python3 Tracker.py -i assets/videos/street-camera.mp4
+```
+The command above will produce a video of mp4 format lasting around 5 seconds as by default 50 frames of the input video file are considered.
+
 **Note**. For further information or in case of difficulties with running scripts, please refer to the following GitHub repositories to verify the required dependencies:
 - [multi-object-tracker](https://github.com/adipandas/multi-object-tracker)
 - [monodepth2](https://github.com/nianticlabs/monodepth2)
