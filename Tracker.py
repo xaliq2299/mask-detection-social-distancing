@@ -40,8 +40,8 @@ def get_boxes_RCNN(model, frame):
 
 
 def main(argv):
-    image_file_formats = ['.mp4', '.mov', '.wmv', 'avi', '.avchd', '.flv', '.f4v', '.swf', '.mkv', '.webm', '.html5', '.mpeg-2']
-    video_file_formats = ['.tiff', '.tif', '.bmp', '.jpg', '.jpeg', ',png', '.gif', '.eps']
+    image_file_formats = ['.tiff', '.tif', '.bmp', '.jpg', '.jpeg', ',png', '.gif', '.eps']
+    video_file_formats = ['.mp4', '.mov', '.wmv', 'avi', '.avchd', '.flv', '.f4v', '.swf', '.mkv', '.webm', '.html5', '.mpeg-2']
 
     #################################################################################
     # PARAMETERS
@@ -72,7 +72,7 @@ def main(argv):
     #################################################################################
     
     try:
-        opts, args = getopt.getopt(argv,"hi:o:f:d:w:c:",["help", "input=", "output", "frames", "distancing", "weights", "config"])
+        opts, args = getopt.getopt(argv,"hi:o:f:d:w:c:",["help", "input=", "output=", "frames=", "distancing=", "weights=", "config="])
     except getopt.GetoptError:
         print("Usage: Tracker.py -i <inputfile> [-o <outputfile> -f <number of frames> -d <social distancing approach (1 for simple approach,\
                                         2 for depth map estimator> -w <Yolov3 weights path> -c <Yolov3 config file path>]")
@@ -93,7 +93,7 @@ def main(argv):
                     image_format = True
                     break
             video_format = False
-            for i in image_file_formats:
+            for i in video_file_formats:
                 if i in INPUT_PATH:
                     video_format = True
                     break
@@ -130,6 +130,13 @@ def main(argv):
                                         2 for depth map estimator> -w <Yolov3 weights path> -c <Yolov3 config file path>]")
         sys.exit()
 
+    # checking whether input is an image or not
+    input_is_image = False
+    for i in image_file_formats:
+        if i in INPUT_PATH:
+            input_is_image = True
+            break
+
     # number of frames
     all_frames_used = False
     if num_frames == -1: # if user has entered -1, then all frames will be processed
@@ -137,16 +144,24 @@ def main(argv):
         cap = cv.VideoCapture(INPUT_PATH)
         num_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
         print("All frames (i.e.,", num_frames, ") to be processed...")
+    elif input_is_image: # equivalent to having 1 frame
+        pass
     else:
-        print(num_frames, " frames to be processed...")
+        print(num_frames, "frames to be processed...")
 
     # processing output file path
     if OUTPUT_PATH == '':
-        directory = 'data/Videos_Processed/'
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        nf = num_frames if not all_frames_used else 'all'  # number of frames information to put in the output filename
-        OUTPUT_PATH = directory + INPUT_PATH.split('/')[-1].split('.')[0] + '_processed_' + str(nf) + '-frames.mp4'
+        if input_is_image:
+            directory = 'data/Images_Processed/'
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            OUTPUT_PATH = directory + INPUT_PATH.split('/')[-1].split('.')[0] + '_processed.mp4'
+        else:
+            directory = 'data/Videos_Processed/'
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            nf = num_frames if not all_frames_used else 'all'  # number of frames information to put in the output filename
+            OUTPUT_PATH = directory + INPUT_PATH.split('/')[-1].split('.')[0] + '_processed_' + str(nf) + '-frames.mp4'
 
     #################################################################################
     # LOAD THE MODELS
@@ -236,7 +251,7 @@ def main(argv):
             social_distancing = SocialDistancing.SocialDistancing(MIN_DISTANCE)
             overlay = social_distancing.euclidean(overlay, human_boxes)
         elif distancing_approach == DEPTH_MAP_ESTIMATOR_APPROACH:
-            MIN_DISTANCE = 2.3
+            MIN_DISTANCE = 2.4
             social_distancing = SocialDistancing.SocialDistancing(MIN_DISTANCE)
 
             directory = 'tmp_disparity_maps/'
@@ -247,17 +262,17 @@ def main(argv):
             output_name = INPUT_PATH.split('/')[1].split('.')[0] + '_frame_' + str(i) + '.jpeg'
             os.system('python3 monodepth2/test_simple.py --image_path tmp_disparity_maps/img.jpg --model_name mono+stereo_640x192')
 
-            img = cv.imread('tmp_disparity_maps/img_disp.jpeg')
-            w, h = img.shape[0], img.shape[1]
+            depth = cv.imread('tmp_disparity_maps/img_disp.jpeg')
+            # w, h = img.shape[0], img.shape[1]
             
             # depth = np.zeros([w, h])
-            disparity = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-            f = 0.8*w # guess for focal length
-            Q = np.float32([[1, 0, 0, -0.5*w],
-                            [0, -1, 0, 0.5*h],
-                            [0, 0, 0, -f],
-                            [0, 0, 1, 0]])
-            depth = cv.reprojectImageTo3D(disparity, Q) # 3D point cloud
+            # disparity = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+            # f = 0.8*w # guess for focal length
+            # Q = np.float32([[1, 0, 0, -0.5*w],
+                            # [0, -1, 0, 0.5*h],
+                            # [0, 0, 0, -f],
+                            # [0, 0, 1, 0]])
+            # depth = cv.reprojectImageTo3D(disparity, Q) # 3D point cloud
             overlay = social_distancing.depth(overlay, human_boxes, depth)
             # os.system('rm -r tmp_disparity_maps/') # todo
 

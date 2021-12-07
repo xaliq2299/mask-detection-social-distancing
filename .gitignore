@@ -2,9 +2,9 @@ data/FaceMaskDetection_Processed/
 data/FaceMaskDetection_Raw/
 data/Videos_Processed/
 data/Videos_Raw/
+data/Images_Processed/
+data/Images_Raw/
 
-models/MaskRecognitionFasterRCNN.pt
-models/MaskRecognitionFasterRSN18.pt
 models/*
 
 monodepth2/
