@@ -37,7 +37,7 @@ class SocialDistancing:
 	            color = self.non_violation_color
 	        cX, cY = centroids[i][0], centroids[i][1]
 	        startX, startY, endX, endY = bounding_boxes[i][0], bounding_boxes[i][1], bounding_boxes[i][0]+bounding_boxes[i][2], bounding_boxes[i][1]+bounding_boxes[i][3]
-	        cv.rectangle(image, (startX, startY), (endX, endY), color, 2)
+	        cv.rectangle(image, (startX, startY), (endX, endY), color, 1)
 	        # cv.circle(image, (int(cX), int(cY)), 5, color, 2)
 
 	        text = 'Violating people: ' + str(len(violate))
@@ -75,7 +75,7 @@ class SocialDistancing:
 	            color = self.non_violation_color
 	        cX, cY = centroids[i][0], centroids[i][1]
 	        startX, startY, endX, endY = bounding_boxes[i][0], bounding_boxes[i][1], bounding_boxes[i][0]+bounding_boxes[i][2], bounding_boxes[i][1]+bounding_boxes[i][3]
-	        cv.rectangle(image, (startX, startY), (endX, endY), color, 2)
+	        cv.rectangle(image, (startX, startY), (endX, endY), color, 1)
 	        # cv.circle(image, (int(cX), int(cY)), 5, color, 2)
 
 	        text = 'Violating people: ' + str(len(violate))

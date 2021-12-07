@@ -88,7 +88,7 @@ def main(argv):
         sys.exit(2)
     for opt, arg in opts:
         if opt in ("-h", "--help"):
-        print("Usage: Tracker.py -i <inputfile> [-o <outputfile> -f <number of frames> -d <social distancing approach (1 for simple approach,\
+            print("Usage: Tracker.py -i <inputfile> [-o <outputfile> -f <number of frames> -d <social distancing approach (1 for simple approach,\
                                         2 for depth map estimator> -w <Yolov3 weights path> -c <Yolov3 config file path> - t <type of tracker \
                                         (1 for SORT tracker and 2 for Centroid tracker)]")
             sys.exit()
@@ -243,11 +243,11 @@ def main(argv):
         
         for (xmin,ymin,xmax,ymax,label) in boxes:
             if label == 1:
-                cv.rectangle(overlay, (xmin,ymin), (xmax,ymax), (0,0,255), 2)
+                cv.rectangle(overlay, (xmin,ymin), (xmax,ymax), (0,0,255), 3)
             elif label == 2:
-                cv.rectangle(overlay, (xmin,ymin), (xmax,ymax), (0,127,127), 2)
+                cv.rectangle(overlay, (xmin,ymin), (xmax,ymax), (0,127,127), 3)
             else:
-                cv.rectangle(overlay, (xmin,ymin), (xmax,ymax), (0,255,0), 2)
+                cv.rectangle(overlay, (xmin,ymin), (xmax,ymax), (0,255,0), 3)
 
         # output = cv.addWeighted(overlay, 0.05, output, 0.90, 0, output) # todo: needed?
 
@@ -280,18 +280,8 @@ def main(argv):
             os.system('python3 monodepth2/test_simple.py --image_path tmp_depth_maps/img.jpg --model_name mono+stereo_640x192')
 
             depth = cv.imread('tmp_depth_maps/img_disp.jpeg')
-            # w, h = img.shape[0], img.shape[1]
-            
-            # depth = np.zeros([w, h])
-            # disparity = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-            # f = 0.8*w # guess for focal length
-            # Q = np.float32([[1, 0, 0, -0.5*w],
-                            # [0, -1, 0, 0.5*h],
-                            # [0, 0, 0, -f],
-                            # [0, 0, 1, 0]])
-            # depth = cv.reprojectImageTo3D(disparity, Q) # 3D point cloud
             overlay = social_distancing.depth(overlay, human_boxes, depth)
-            shutil.rmtree('./tmp_depth_maps/')
+            shutil.rmtree('./tmp_depth_maps/') # removing entire folder
 
         #################################################################################
         out.write(overlay) # todo: output

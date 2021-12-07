@@ -1,6 +1,9 @@
 # [**INF634 - COMPUTER VISION PROJECT**](https://moodle.polytechnique.fr/course/view.php?id=13008)
 ## **Mask Detection and Social Distancing**
 
+![Macron with students](https://github.com/xaliq2299/mask-detection-social-distancing/blob/main/assets/gifs/Macron.gif)
+![Pedestrians](https://github.com/xaliq2299/mask-detection-social-distancing/blob/main/assets/gifs/street-camera.gif)
+
 *Wearing masks and keeping necessary social distance is essential in the era of COVID.
 The goal of this project is to detect if people are wearing masks (in images and over time in
 videos) and then compute the distance between them over time. For this, the team will need to
@@ -53,6 +56,12 @@ The input file is important for the script to function, but the remaining user a
 ```
 python3 TrackerLive.py
 ```
+**Example**<br>
+```
+python3 Tracker.py -i assets/videos/street-camera.mp4
+```
+The command above will produce a video of mp4 format lasting around 5 seconds as by default 50 frames of the input video file are considered.
+
 **Note**. For further information or in case of difficulties with running scripts, please refer to the following GitHub repositories to verify the required dependencies:
 - [multi-object-tracker](https://github.com/adipandas/multi-object-tracker)
 - [monodepth2](https://github.com/nianticlabs/monodepth2)
@@ -86,7 +95,16 @@ ___
 
 ### **Task 2 | Human Detection and Tracking**
 
-*Detect humans in videos and track them using bounding boxes over time.*
+*Detect humans in videos and track them using bounding boxes over time.* </br>
+
+To achieve human detection, we benefited from the pre-trained Yolov3 model. </br>
+Regarding the tracking, there are two algorithms considered in the repository:
+1. *SORT*: default tracker.
+2. *Centroid*: to use this tracker, user should specify it as an argument. See example below:
+```
+python3 Tracker.py -t 2 [--tracking 2]
+```
+Note that 1 is used for SORT and 2 for Centroid tracker.
 
 ***TODO: how and results***
 
