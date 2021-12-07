@@ -28,7 +28,8 @@ video_path = 0
 ### HAAR CASCADE + RESNET18 ###
 ###############################
 
-FaceDetection_model = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+FaceDetection_model_frontal = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+FaceDetection_model_profile = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_profileface.xml")
 
 modelRSN18 = models.resnet18(pretrained=True)
 for param in modelRSN18.parameters():
@@ -46,9 +47,15 @@ modelRSN18.eval()
 
 def get_boxes_RSN18(img):
     gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    boxes = FaceDetection_model.detectMultiScale(gray_img, 1.1, 4)
+    boxes_frontal = FaceDetection_model_frontal.detectMultiScale(gray_img, 1.1, 4)
+    boxes_profile = FaceDetection_model_profile.detectMultiScale(gray_img, 1.1, 4)
     results = []
-    for (x,y,w,h) in boxes:
+    for (x,y,w,h) in boxes_frontal:
+        model_input = transforms.Resize((256,256))(torch.Tensor(img[y:y+h,x:x+w]).permute(2,0,1))
+        model_input = model_input.reshape((1,3,256,256)).to(device)
+        label = torch.argmax(modelRSN18(model_input)).item()
+        results.append((x,y,x+w,y+h,label))
+    for (x,y,w,h) in boxes_profile:
         model_input = transforms.Resize((256,256))(torch.Tensor(img[y:y+h,x:x+w]).permute(2,0,1))
         model_input = model_input.reshape((1,3,256,256)).to(device)
         label = torch.argmax(modelRSN18(model_input)).item()
