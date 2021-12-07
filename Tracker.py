@@ -128,22 +128,25 @@ def main(argv):
         print('[!] Input file path required')
         print("Usage: Tracker.py -i <inputfile> [-o <outputfile> -f <number of frames> -d <social distancing approach (1 for simple approach,\
                                         2 for depth map estimator> -w <Yolov3 weights path> -c <Yolov3 config file path>]")
+        sys.exit()
+
+    # number of frames
+    all_frames_used = False
+    if num_frames == -1: # if user has entered -1, then all frames will be processed
+        all_frames_used = True
+        cap = cv.VideoCapture(INPUT_PATH)
+        num_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
+        print("All frames (i.e.,", num_frames, ") to be processed...")
+    else:
+        print(num_frames, " frames to be processed...")
 
     # processing output file path
     if OUTPUT_PATH == '':
         directory = 'data/Videos_Processed/'
         if not os.path.exists(directory):
             os.makedirs(directory)
-        OUTPUT_PATH = directory + INPUT_PATH.split('/')[-1].split('.')[0] + '_processed.mp4'
-
-    # number of frames
-    if num_frames == -1: # if user has entered -1, then all frames will be processed
-        cap = cv.VideoCapture(INPUT_PATH)
-        num_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
-        print("All frames (i.e.,", num_frames, ") to be processed...")
-    else:
-       print(num_frames, " frames to be processed...")
-
+        nf = num_frames if not all_frames_used else 'all'  # number of frames information to put in the output filename
+        OUTPUT_PATH = directory + INPUT_PATH.split('/')[-1].split('.')[0] + '_processed_' + str(nf) + '-frames.mp4'
 
     #################################################################################
     # LOAD THE MODELS

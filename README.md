@@ -23,7 +23,7 @@ pip install ipyfilechooser
 ```
 Downloading a pre-trained Yolov3 model:
 ```
-!./examples/pretrained_models/yolo_weights/get_yolo.sh
+./examples/pretrained_models/yolo_weights/get_yolo.sh
 mkdir Yolov3/
 mv yolov3.weights yolov3.cfg coco.names Yolov3/
 mv Yolov3/ ..
@@ -32,19 +32,27 @@ mkdir models/
 mv Yolov3/ models/
 ```
 Downloading Mask Recognition model(s):
-*Please download the model weights in the Google Drive [link](https://drive.google.com/drive/folders/1ZqRsMq2iQrkNM_hsr7QnRHZc7U8Osv_e?usp=sharing) and put them in the path "mask-detection-social-distancing/models"*
+*Please download the model weights in the Google Drive [link](https://drive.google.com/drive/folders/1ZqRsMq2iQrkNM_hsr7QnRHZc7U8Osv_e?usp=sharing) and put them in the path "mask-detection-social-distancing/models"* </br>
 Cloning the depth map estimation repository
 ```
 git clone https://github.com/nianticlabs/monodepth2.git
 pip install tensorboardX==1.4
 ```
+___
 
-
-
-
-
-
-
+### Running scripts
+There are two main scripts in the repository:
+- *Tracker.py*: requires an input file (video/image) and outputs its processed version. To run it:
+```
+python3 Tracker.py -i <inputfile> [-o <outputfile> -f <number of frames> -d <social distancing approach (1 for simple approach,\
+                           2 for depth map estimator> -w <Yolov3 weights path> -c <Yolov3 config file path>]"
+```
+The input file is important for the script to function, but the remaining user arguments are optional.
+- *TrackerLive.py*: real-time mask detection using webcam. To run it:
+```
+python3 TrackerLive.py
+```
+**Note**: For further information or in case of difficulties with running scripts, please refer to the following GitHub repositories to verify the required dependencies.
 
 
 
@@ -115,3 +123,8 @@ ___
 ___
 
 ### **References**
+
+
+___
+
+### Contact
