@@ -1,6 +1,8 @@
 # [**INF634 - COMPUTER VISION PROJECT**](https://moodle.polytechnique.fr/course/view.php?id=13008)
 ## **Mask Detection and Social Distancing**
 
+![Macron with students](https://github.com/xaliq2299/mask-detection-social-distancing/blob/main/assets/gifs/Macron.gif)
+![Pedestrians](https://github.com/xaliq2299/mask-detection-social-distancing/blob/main/assets/gifs/street-camera.gif)
 
 *Wearing masks and keeping necessary social distance is essential in the era of COVID.
 The goal of this project is to detect if people are wearing masks (in images and over time in
