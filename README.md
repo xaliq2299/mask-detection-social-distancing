@@ -1,6 +1,7 @@
 # [**INF634 - COMPUTER VISION PROJECT**](https://moodle.polytechnique.fr/course/view.php?id=13008)
 ## **Mask Detection and Social Distancing**
 
+
 *Wearing masks and keeping necessary social distance is essential in the era of COVID.
 The goal of this project is to detect if people are wearing masks (in images and over time in
 videos) and then compute the distance between them over time. For this, the team will need to
@@ -86,7 +87,16 @@ ___
 
 ### **Task 2 | Human Detection and Tracking**
 
-*Detect humans in videos and track them using bounding boxes over time.*
+*Detect humans in videos and track them using bounding boxes over time.* </br>
+
+To achieve human detection, we benefited from the pre-trained Yolov3 model. </br>
+Regarding the tracking, there are two algorithms considered in the repository:
+1. *SORT*: default tracker.
+2. *Centroid*: to use this tracker, user should specify it as an argument. See example below:
+```
+python3 Tracker.py -t 2 [--tracking 2]
+```
+Note that 1 is used for SORT and 2 for Centroid tracker.
 
 ***TODO: how and results***
 
