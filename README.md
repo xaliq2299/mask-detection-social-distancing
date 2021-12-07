@@ -24,6 +24,12 @@ pip install ipyfilechooser
 Downloading a pre-trained Yolov3 model:
 ```
 !./examples/pretrained_models/yolo_weights/get_yolo.sh
+mkdir Yolov3/
+mv yolov3.weights yolov3.cfg coco.names Yolov3/
+mv Yolov3/ ..
+cd ..
+mkdir models/
+mv Yolov3/ models/
 ```
 
 

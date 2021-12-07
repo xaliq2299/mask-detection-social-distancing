@@ -49,8 +49,8 @@ def main(argv):
 
     INPUT_PATH = ''
     OUTPUT_PATH = ''
-    WEIGHTS_PATH = 'multi-object-tracker/Yolov3/yolov3.weights'
-    CONFIG_FILE_PATH = 'multi-object-tracker/Yolov3/yolov3.cfg'
+    WEIGHTS_PATH = 'models/Yolov3/yolov3.weights'
+    CONFIG_FILE_PATH = 'models/Yolov3/yolov3.cfg'
     LABELS_PATH = "multi-object-tracker/examples/pretrained_models/yolo_weights/coco_names.json"
     num_frames = 50 # means ~5 secs
 
