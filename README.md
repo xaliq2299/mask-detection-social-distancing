@@ -5,6 +5,7 @@
 The goal of this project is to detect if people are wearing masks (in images and over time in
 videos) and then compute the distance between them over time. For this, the team will need to
 use face detection and tracking techniques, and explore the social distancing effect.*
+
 ___
 
 ### Setup
@@ -32,30 +33,29 @@ mkdir models/
 mv Yolov3/ models/
 ```
 Downloading Mask Recognition model(s):
-*Please download the model weights in the Google Drive [link](https://drive.google.com/drive/folders/1ZqRsMq2iQrkNM_hsr7QnRHZc7U8Osv_e?usp=sharing) and put them in the path "mask-detection-social-distancing/models"* </br>
-Cloning the depth map estimation repository
+*Please download the model weights in the Google Drive [link](https://drive.google.com/drive/folders/1ZqRsMq2iQrkNM_hsr7QnRHZc7U8Osv_e?usp=sharing) and put them in the path "mask-detection-social-distancing/models"*. </br> </br>
+Cloning the depth map estimation repository:
 ```
 git clone https://github.com/nianticlabs/monodepth2.git
 pip install tensorboardX==1.4
 ```
+
 ___
 
 ### Running scripts
 There are two main scripts in the repository:
 - *Tracker.py*: requires an input file (video/image) and outputs its processed version. To run it:
 ```
-python3 Tracker.py -i <inputfile> [-o <outputfile> -f <number of frames> -d <social distancing approach (1 for simple approach,\
-                           2 for depth map estimator> -w <Yolov3 weights path> -c <Yolov3 config file path>]"
+python3 Tracker.py -i <inputfile> [-o <outputfile> -f <number of frames> -d <social distancing approach (1 for simple approach, 2 for depth map estimator> -w <Yolov3 weights path> -c <Yolov3 config file path>]"
 ```
 The input file is important for the script to function, but the remaining user arguments are optional.
 - *TrackerLive.py*: real-time mask detection using webcam. To run it:
 ```
 python3 TrackerLive.py
 ```
-**Note**: For further information or in case of difficulties with running scripts, please refer to the following GitHub repositories to verify the required dependencies.
-
-
-
+**Note**. For further information or in case of difficulties with running scripts, please refer to the following GitHub repositories to verify the required dependencies:
+- [multi-object-tracker](https://github.com/adipandas/multi-object-tracker)
+- [monodepth2](https://github.com/nianticlabs/monodepth2)
 
 ___
 
@@ -111,7 +111,14 @@ ___
 
 ### **Task 4: Social distancing**
 
-*Open problem*
+In our project, we have implemented two approaches to deal for social distancing, i.e., to find or approximate distances between humans:
+1. *Prior-based approach*, pixel-wise distance estimation. By default, this approach is used.
+2. *Depth map estimator*, a Deep Learning-based complex approach. To use it, user should set distancing option to 2.
+Usage:
+```
+python3 Tracker.py -d 1 [--distancing 1]
+```
+Note that 1 is used for the first and 2 for the second approach.
 
 ***TODO: Our understanding of the problem***
 
@@ -128,3 +135,5 @@ ___
 ___
 
 ### Contact
+[Anthony Kobanda](mailto:anthony.kobanda@polytechnique.edu)
+[Khalig Aghakarimov](khalig.aghakarimov@polytechnique.edu)
