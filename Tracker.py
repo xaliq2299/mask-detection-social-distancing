@@ -62,6 +62,11 @@ def main(argv):
     distancing_approach = PRIOR_BASED_APPROACH
     MIN_DISTANCE = 50 # needed for social distancing
 
+    # tracker type
+    SORT_tracker = 1
+    Centroid_tracker = 2
+    tracker_type = SORT_tracker
+
     # Yolov3 and SORT
     CONFIDENCE_THRESHOLD = 0.5
     NMS_THRESHOLD = 0.2
@@ -74,15 +79,17 @@ def main(argv):
     #################################################################################
     
     try:
-        opts, args = getopt.getopt(argv,"hi:o:f:d:w:c:",["help", "input=", "output=", "frames=", "distancing=", "weights=", "config="])
+        opts, args = getopt.getopt(argv,"hi:o:f:d:w:c:t:",["help", "input=", "output=", "frames=", "distancing=", "weights=", "config=", "tracker="])
     except getopt.GetoptError:
         print("Usage: Tracker.py -i <inputfile> [-o <outputfile> -f <number of frames> -d <social distancing approach (1 for simple approach,\
-                                        2 for depth map estimator> -w <Yolov3 weights path> -c <Yolov3 config file path>]")
+                                        2 for depth map estimator> -w <Yolov3 weights path> -c <Yolov3 config file path> - t <type of tracker \
+                                        (1 for SORT tracker and 2 for Centroid tracker)]")
         sys.exit(2)
     for opt, arg in opts:
         if opt in ("-h", "--help"):
-            print("Usage: Tracker.py -i <inputfile> [-o <outputfile> -f <number of frames> -d <social distancing approach (1 for simple approach,\
-                                        2 for depth map estimator> -w <Yolov3 weights path> -c <Yolov3 config file path>]")
+        print("Usage: Tracker.py -i <inputfile> [-o <outputfile> -f <number of frames> -d <social distancing approach (1 for simple approach,\
+                                        2 for depth map estimator> -w <Yolov3 weights path> -c <Yolov3 config file path> - t <type of tracker \
+                                        (1 for SORT tracker and 2 for Centroid tracker)]")
             sys.exit()
         elif opt in ("-i", "--input"):
             INPUT_PATH = arg
@@ -119,17 +126,21 @@ def main(argv):
             if not os.path.isfile(CONFIG_FILE_PATH):
                 print('[!] Invalid YOLOv3 config file path.')
                 sys.exit()
+        elif opt in ("-t", "--tracker"):
+            tracker_type = arg
         else:
             print("[!] Entered unknown option")
             print("Usage: Tracker.py -i <inputfile> [-o <outputfile> -f <number of frames> -d <social distancing approach (1 for simple approach,\
-                                        2 for depth map estimator> -w <Yolov3 weights path> -c <Yolov3 config file path>]")
+                                        2 for depth map estimator> -w <Yolov3 weights path> -c <Yolov3 config file path> - t <type of tracker \
+                                        (1 for SORT tracker and 2 for Centroid tracker)]")
             sys.exit()
 
     # checking importance of input file path
     if INPUT_PATH == '':
         print('[!] Input file path required')
         print("Usage: Tracker.py -i <inputfile> [-o <outputfile> -f <number of frames> -d <social distancing approach (1 for simple approach,\
-                                        2 for depth map estimator> -w <Yolov3 weights path> -c <Yolov3 config file path>]")
+                                        2 for depth map estimator> -w <Yolov3 weights path> -c <Yolov3 config file path> - t <type of tracker \
+                                        (1 for SORT tracker and 2 for Centroid tracker)]")
         sys.exit()
 
     # checking whether input is an image or not
@@ -187,9 +198,12 @@ def main(argv):
         draw_bboxes=DRAW_BOUNDING_BOXES,
         use_gpu=USE_GPU
     )
- 
-    # 3. SORT TRACKER
-    tracker = SORT(max_lost=3, tracker_output_format='mot_challenge', iou_threshold=0.3)
+
+    # 3. TRACKER. By default, SORT is used
+    if tracker_type == Centroid_tracker:
+        tracker = CentroidTracker(max_lost=0, tracker_output_format='mot_challenge')
+    else: # which means the value is 1, i.e. SORT
+        tracker = SORT(max_lost=3, tracker_output_format='mot_challenge', iou_threshold=0.3)
     
 
     #################################################################################
