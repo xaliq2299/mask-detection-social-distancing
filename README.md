@@ -31,8 +31,13 @@ cd ..
 mkdir models/
 mv Yolov3/ models/
 ```
-
-
+Downloading Mask Recognition model(s):
+*Please download the model weights in the Google Drive [link](https://drive.google.com/drive/folders/1ZqRsMq2iQrkNM_hsr7QnRHZc7U8Osv_e?usp=sharing) and put them in the path "mask-detection-social-distancing/models"*
+Cloning the depth map estimation repository
+```
+git clone https://github.com/nianticlabs/monodepth2.git
+pip install tensorboardX==1.4
+```
 
 
 
