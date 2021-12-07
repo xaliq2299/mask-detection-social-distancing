@@ -42,6 +42,7 @@ def get_boxes_RCNN(model, frame):
 
 
 def main(argv):
+
     image_file_formats = ['.tiff', '.tif', '.bmp', '.jpg', '.jpeg', ',png', '.gif', '.eps']
     video_file_formats = ['.mp4', '.mov', '.wmv', 'avi', '.avchd', '.flv', '.f4v', '.swf', '.mkv', '.webm', '.html5', '.mpeg-2']
 
@@ -305,5 +306,5 @@ def main(argv):
 
 
 if __name__ == "__main__":
-   main(sys.argv[1:])
-   exit()
+    main(sys.argv[1:])
+    exit()
