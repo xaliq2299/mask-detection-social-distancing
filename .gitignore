@@ -2,7 +2,12 @@ data/FaceMaskDetection_Processed/
 data/FaceMaskDetection_Raw/
 data/Videos_Processed/
 data/Videos_Raw/
-__pycache__/
+
 models/MaskRecognitionFasterRCNN.pt
 models/MaskRecognitionFasterRSN18.pt
 models/*
+
+monodepth2/
+multi-object-tracker/
+
+__pycache__/
