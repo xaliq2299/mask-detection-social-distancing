@@ -1,11 +1,42 @@
 # [**INF634 - COMPUTER VISION PROJECT**](https://moodle.polytechnique.fr/course/view.php?id=13008)
 ## **Mask Detection and Social Distancing**
 
-
 *Wearing masks and keeping necessary social distance is essential in the era of COVID.
 The goal of this project is to detect if people are wearing masks (in images and over time in
 videos) and then compute the distance between them over time. For this, the team will need to
 use face detection and tracking techniques, and explore the social distancing effect.*
+___
+
+### Setup
+After cloning the repository, please follow the commands below in order:
+```
+cd mask-detection-social-distancing
+pip install -r requirements.txt
+```
+Cloning the Multi-object Tracker repository:
+```
+git clone https://github.com/xaliq2299/multi-object-tracker.git
+cd multi-object-tracker
+pip install -r requirements.txt
+pip install -e .
+pip install ipyfilechooser
+```
+Downloading a pre-trained Yolov3 model:
+```
+!./examples/pretrained_models/yolo_weights/get_yolo.sh
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
 ___
 
