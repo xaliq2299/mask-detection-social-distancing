@@ -138,10 +138,6 @@ python3 Tracker.py -d 1 [--distancing 1]
 ```
 Note that 1 is used for the first and 2 for the second approach.
 
-***TODO: Our understanding of the problem***
-
-***TODO: Our solution***
-
 - Extras:
     - For social distancing, you can use anything from heuristics (e.g., use prior on the human height and estimate the distance given this prior), depth estimators (example),
 
